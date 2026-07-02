@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Treino Verônica</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0f;
+    --surface: #17171a;
+    --card: #1e1e23;
+    --border: #2a2a32;
+    --accent: #ff6eb4;
+    --accent2: #c44dff;
+    --text: #f0f0f0;
+    --muted: #6b6b7a;
+    --done: #2a1a2e;
+    --done-border: #c44dff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; max-width: 480px; margin: 0 auto; }
+
+  .nav { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); }
+  .nav-btn { flex: 1; padding: 14px; border: none; background: none; color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid transparent; transition: all 0.2s; }
+  .nav-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 20px 14px; position: sticky; top: 0; z-index: 100; }
+  .header-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 2px; color: var(--accent); line-height: 1; }
+  .logo span { color: var(--text); }
+  .date-badge { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; text-align: right; line-height: 1.5; }
+  .day-tabs { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+  .day-tabs::-webkit-scrollbar { display: none; }
+  .day-tab { flex-shrink: 0; padding: 7px 14px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+  .day-tab.active { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 700; }
+  .day-tab.completed { border-color: var(--done-border); color: var(--done-border); }
+
+  main { padding: 16px 16px 100px; }
+
+  .progress-bar-wrap { background: var(--card); border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; border: 1px solid var(--border); }
+  .progress-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .progress-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .progress-count { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--accent); letter-spacing: 1px; }
+  .progress-track { height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 99px; transition: width 0.4s ease; }
+
+  .section-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); margin: 20px 0 10px; }
+
+  .exercise-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; }
+  .exercise-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--border); transition: background 0.2s; }
+  .exercise-card:active { transform: scale(0.98); }
+  .exercise-card.done { background: var(--done); border-color: var(--done-border); opacity: 0.9; }
+  .exercise-card.done::before { background: var(--done-border); }
+  .exercise-top { display: flex; align-items: center; gap: 12px; }
+  .exercise-num { font-family: 'Bebas Neue', sans-serif; font-size: 30px; color: var(--accent); line-height: 1; min-width: 36px; letter-spacing: 1px; }
+  .exercise-card.done .exercise-num { color: var(--done-border); }
+  .exercise-info { flex: 1; }
+  .exercise-name { font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.3; margin-bottom: 3px; }
+  .exercise-card.done .exercise-name { text-decoration: line-through; color: var(--muted); }
+  .exercise-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .badge { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 6px; background: rgba(255,110,180,0.12); color: var(--accent); }
+  .exercise-card.done .badge { background: rgba(196,77,255,0.15); color: var(--done-border); }
+  .badge-obs { font-size: 11px; color: var(--muted); font-style: italic; }
+  .check-icon { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; }
+  .exercise-card.done .check-icon { background: var(--done-border); border-color: var(--done-border); }
+  .check-icon svg { width: 14px; height: 14px; }
+
+  .weight-section { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); display: none; }
+  .weight-section.visible { display: block; }
+  .weight-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .weight-input-wrap { display: flex; align-items: center; gap: 10px; }
+  .weight-input { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 600; padding: 8px 12px; width: 90px; text-align: center; outline: none; transition: border 0.2s; }
+  .weight-input:focus { border-color: var(--accent); }
+  .weight-unit { font-size: 13px; color: var(--muted); }
+
+  .finish-btn-wrap { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; padding: 12px 16px 24px; background: linear-gradient(to top, var(--bg) 70%, transparent); }
+  .finish-btn { width: 100%; padding: 16px; background: var(--accent); color: #000; border: none; border-radius: 14px; font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; cursor: pointer; transition: all 0.2s; }
+  .finish-btn:active { transform: scale(0.98); }
+  .finish-btn:disabled { background: var(--border); color: var(--muted); cursor: default; transform: none; }
+
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 999; align-items: center; justify-content: center; padding: 24px; }
+  .overlay.show { display: flex; }
+  .overlay-card { background: var(--card); border: 1px solid var(--accent); border-radius: 20px; padding: 32px 24px; text-align: center; max-width: 320px; width: 100%; }
+  .overlay-emoji { font-size: 56px; margin-bottom: 12px; }
+  .overlay-title { font-family: 'Bebas Neue', sans-serif; font-size: 34px; color: var(--accent); letter-spacing: 2px; margin-bottom: 6px; }
+  .overlay-sub { font-size: 14px; color: var(--muted); margin-bottom: 24px; line-height: 1.5; }
+  .overlay-btn { background: var(--accent); color: #000; border: none; border-radius: 12px; padding: 14px 32px; font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 1px; cursor: pointer; width: 100%; }
+
+  /* HISTÓRICO */
+  #pageHistorico { display: none; padding: 16px 16px 80px; }
+  .hist-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; color: var(--accent); margin-bottom: 16px; }
+  .hist-day-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 12px; overflow: hidden; }
+  .hist-day-header { padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+  .hist-day-name { font-weight: 700; font-size: 15px; }
+  .hist-day-tag { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .hist-count-badge { background: rgba(255,110,180,0.12); color: var(--accent); font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px; padding: 4px 12px; border-radius: 20px; white-space: nowrap; }
+  .hist-count-badge.zero { background: var(--border); color: var(--muted); }
+  .hist-sessions { border-top: 1px solid var(--border); padding: 0 16px; max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+  .hist-sessions.open { max-height: 600px; }
+  .hist-session-row { padding: 10px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .hist-session-row:last-child { border-bottom: none; }
+  .hist-session-num { font-size: 12px; color: var(--muted); }
+  .hist-session-date { font-size: 13px; font-weight: 600; }
+  .hist-empty { font-size: 13px; color: var(--muted); padding: 14px 0; text-align: center; }
+  .hist-clear-btn { width: 100%; padding: 12px; background: transparent; border: 1px solid #c0392b; color: #c0392b; border-radius: 12px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <button class="nav-btn active" id="navTreino" onclick="showPage('treino')">🏋️ Treino</button>
+  <button class="nav-btn" id="navHistorico" onclick="showPage('historico')">📅 Histórico</button>
+</div>
+
+<div id="pageTreino">
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <div class="logo">TREINO<span> VERÔNICA</span></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;letter-spacing:1px;">MANTIQUEIRA COUNTRY CLUB</div>
+      </div>
+      <div class="date-badge" id="dateBadge"></div>
+    </div>
+    <div class="day-tabs" id="dayTabs"></div>
+  </div>
+  <main id="mainContent"></main>
+  <div class="finish-btn-wrap">
+    <button class="finish-btn" id="finishBtn" onclick="finishWorkout()">✓ CONCLUIR TREINO</button>
+  </div>
+</div>
+
+<div id="pageHistorico">
+  <div class="hist-title">📅 Histórico de Treinos</div>
+  <div id="histContent"></div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="overlay-card">
+    <div class="overlay-emoji">🌟</div>
+    <div class="overlay-title">TREINO CONCLUÍDO!</div>
+    <div class="overlay-sub" id="overlayMsg"></div>
+    <button class="overlay-btn" onclick="closeOverlay()">FECHAR</button>
+  </div>
+</div>
+
+<script>
+const exercises = {
+  1:"Supino Reto Barra",2:"Supino Inclinado Barra",3:"Supino Declinado Barra",
+  4:"Flexão de Braço Livre",5:"Voador - Abdução na Máquina",6:"Voador – Adução na Máquina",
+  7:"Cruxifixo Reto",8:"Cruxifixo Inclinado",9:"Cruxifixo Declinado",
+  10:"Pull Over Reto",11:"Supino com Halteres",12:"Cross Over",
+  13:"Puxada Atrás na Polia Alta",14:"Puxada à Frente Aberta na Polia Alta",
+  15:"Puxada à Frente Fechada na Polia Alta",16:"Puxada à Frente Supinada na Polia Alta",
+  17:"Puxada Braços Estendidos na Polia Alta",18:"Remada Fechada Máquina",
+  19:"Remada Aberta Máquina",20:"Remada Aberta na Polia Baixa",
+  21:"Remada Fechada na Polia Baixa",22:"Remada Unilateral (Halteres ou Polia)",
+  23:"Cruxifixo Invertido",24:"Tração na Barra Fixa",
+  25:"Desenvolvimento Atrás Máquina",26:"Desenvolvimento à Frente Máquina",
+  27:"Desenvolvimento Atrás (Barra ou Trilho)",28:"Desenvolvimento à Frente (Barra ou Trilho)",
+  29:"Desenvolvimento com Halteres",30:"Elevação Lateral",
+  31:"Elevação Unilateral Polia Baixa",32:"Elevação Frontal",
+  33:"Elevação Frontal Lenhador",34:"Remada Alta na Barra",
+  35:"Remada Alta na Polia Baixa",36:"Encolhimento com Barra",
+  37:"Encolhimento no Trilho",38:"Encolhimento com Rotação",
+  39:"Abdominal Supra (colchonete)",40:"Abdominal com Pés Elevados",
+  41:"Abdominal com os Pés sobre o Banco",42:"Abdominal com Elevação (Infra)",
+  43:"Abdominal Lateral (colchonete)",44:"Abdominal em pé (pesos ou polia)",
+  45:"Rosca Direta Barra (Reta ou W)",46:"Rosca Direta na Polia Baixa",
+  47:"Rosca Alternada",48:"Rosca Martelo",49:"Rosca Concentrada",
+  50:"Rosca Scott Máquina",51:"Rosca Scott Concentrada",
+  52:"Rosca Inversa (Halteres ou Barra)",53:"Rosca Inversa na Polia Baixa",
+  54:"Flexão Unilateral na Polia Baixa",55:"Flexão Braços em Cruz na Polia Alta",
+  56:"Tríceps Máquina",57:"Tríceps Francês (Halteres)",58:"Tríceps Coice Halteres",
+  59:"Tríceps Coice Polia Baixa",60:"Tríceps Testa (Barra ou Halteres)",
+  61:"Tríceps Polia Alta Barra Reta",62:"Tríceps Polia Alta Barra V",
+  63:"Tríceps Inverso na Polia Alta",64:"Extensão Unilateral na Polia",65:"Tríceps Paralela",
+  66:"Avanço Livre com Pesos",67:"Avanço no Trilho Guiado",
+  68:"Agachamento Trilho Guiado",69:"Leg Press 45°",70:"Mesa Extensora",
+  71:"Mesa Flexora",72:"Banco Adutor",73:"Banco Abdutor",
+  74:"Glúteo com Tornozeleiras",75:"Glúteo Máquina",
+  76:"Adução do Quadril Polia Baixa",77:"Abdução do Quadril Polia Baixa",
+  78:"Extensão do Quadril Polia Baixa",79:"Panturrilha no Leg 45",
+  80:"Extensão dos Pés com Pesos",81:"Stiff (Levantamento Terra)"
+};
+
+const workouts = [
+  { name:"Dia 1", tag:"Pernas + Abdômen", exercises:[
+    {num:70,sets:"3×12"},
+    {num:69,sets:"3×12"},
+    {num:68,sets:"3×12"},
+    {num:71,sets:"4×10"},
+    {num:80,sets:"3×15"},
+    {num:39,sets:"3×12"},
+    {num:"Prancha",sets:"3×máx",name:"Prancha Abdominal"}
+  ]},
+  { name:"Dia 2", tag:"Peito + Ombros + Tríceps", exercises:[
+    {num:1,sets:"3×12"},
+    {num:2,sets:"3×12"},
+    {num:6,sets:"3×12"},
+    {num:"R.Con",sets:"3×15",name:"Remada Concentrada"},
+    {num:30,sets:"3×10"},
+    {num:25,sets:"3×10"},
+    {num:62,sets:"3×10"},
+    {num:60,sets:"3×10"}
+  ]},
+  { name:"Dia 3", tag:"Pernas + Glúteo + Abdômen", exercises:[
+    {num:71,sets:"3×12",obs:"Cadeira"},
+    {num:81,sets:"3×12"},
+    {num:72,sets:"3×12"},
+    {num:70,sets:"4×10"},
+    {num:73,sets:"3×15"},
+    {num:78,sets:"3×15"},
+    {num:42,sets:"3×12"},
+    {num:"Prancha",sets:"3×máx",name:"Prancha Abdominal"}
+  ]},
+  { name:"Dia 4", tag:"Costas + Bíceps", exercises:[
+    {num:19,sets:"3×12"},
+    {num:21,sets:"3×12"},
+    {num:17,sets:"3×12"},
+    {num:1,sets:"3×15",obs:"Articulado"},
+    {num:23,sets:"3×10"},
+    {num:36,sets:"3×10"},
+    {num:46,sets:"3×10"},
+    {num:49,sets:"3×10"}
+  ]}
+];
+
+let currentDay = 0;
+let state = {};
+let history = {};
+
+function loadData() {
+  try { state = JSON.parse(localStorage.getItem('gymStateV') || '{}'); } catch(e){ state={}; }
+  try { history = JSON.parse(localStorage.getItem('gymHistoryV') || '{}'); } catch(e){ history={}; }
+}
+function saveState() { localStorage.setItem('gymStateV', JSON.stringify(state)); }
+function saveHistory() { localStorage.setItem('gymHistoryV', JSON.stringify(history)); }
+
+function getExName(ex) {
+  if (ex.name) return ex.name;
+  if (typeof ex.num === 'number') return exercises[ex.num] || `Exercício ${ex.num}`;
+  return ex.num;
+}
+function getKey(d,e){ return `d${d}_e${e}`; }
+
+function toggleExercise(d,e){
+  const k=getKey(d,e);
+  state[k]=state[k]||{};
+  state[k].done=!state[k].done;
+  saveState(); renderContent(); renderTabs();
+}
+function setWeight(d,e,v){
+  const k=getKey(d,e);
+  state[k]=state[k]||{};
+  state[k].weight=v;
+  saveState();
+}
+function getDayProgress(d){
+  const exs=workouts[d].exercises;
+  const done=exs.filter((_,i)=>state[getKey(d,i)]?.done).length;
+  return {done,total:exs.length};
+}
+
+function renderTabs(){
+  const wrap=document.getElementById('dayTabs');
+  wrap.innerHTML=workouts.map((w,i)=>{
+    const {done,total}=getDayProgress(i);
+    const complete=done===total;
+    return `<button class="day-tab ${i===currentDay?'active':''} ${complete&&i!==currentDay?'completed':''}"
+      onclick="switchDay(${i})">${w.name}${complete?' ✓':''}</button>`;
+  }).join('');
+}
+
+function switchDay(idx){ currentDay=idx; renderTabs(); renderContent(); }
+
+function renderContent(){
+  const day=workouts[currentDay];
+  const {done,total}=getDayProgress(currentDay);
+  const pct=total?Math.round((done/total)*100):0;
+  let html=`
+    <div class="progress-bar-wrap">
+      <div class="progress-info">
+        <span class="progress-label">Progresso do treino</span>
+        <span class="progress-count">${done}/${total}</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+    </div>
+    <div class="section-label">${day.tag}</div>`;
+
+  day.exercises.forEach((ex,i)=>{
+    const k=getKey(currentDay,i);
+    const isDone=state[k]?.done||false;
+    const weight=state[k]?.weight||'';
+    const name=getExName(ex);
+    const numDisplay=typeof ex.num==='number'?String(ex.num).padStart(2,'0'):ex.num;
+    html+=`
+      <div class="exercise-card ${isDone?'done':''}" onclick="handleCardClick(${i},event)">
+        <div class="exercise-top">
+          <div class="exercise-num">${numDisplay}</div>
+          <div class="exercise-info">
+            <div class="exercise-name">${name}</div>
+            <div class="exercise-meta">
+              <span class="badge">${ex.sets}</span>
+              ${ex.obs?`<span class="badge-obs">${ex.obs}</span>`:''}
+            </div>
+          </div>
+          <div class="check-icon">
+            ${isDone?`<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>`:''}
+          </div>
+        </div>
+        <div class="weight-section ${isDone?'visible':''}">
+          <div class="weight-label">Carga utilizada</div>
+          <div class="weight-input-wrap">
+            <input type="number" class="weight-input" placeholder="0" value="${weight}"
+              onclick="event.stopPropagation()"
+              onchange="setWeight(${currentDay},${i},this.value)"
+              inputmode="decimal">
+            <span class="weight-unit">kg</span>
+          </div>
+        </div>
+      </div>`;
+  });
+
+  document.getElementById('mainContent').innerHTML=html;
+  document.getElementById('finishBtn').disabled=done<total;
+}
+
+function handleCardClick(i,event){
+  if(event.target.tagName==='INPUT') return;
+  toggleExercise(currentDay,i);
+}
+
+function formatDate(iso){
+  const d=new Date(iso);
+  const days=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const months=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  return `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function finishWorkout(){
+  const day=workouts[currentDay];
+  const now=new Date();
+  const isoDate=now.toISOString();
+  if(!history[currentDay]) history[currentDay]=[];
+  history[currentDay].push({date:formatDate(isoDate),isoDate});
+  saveHistory();
+  workouts[currentDay].exercises.forEach((_,i)=>{ delete state[getKey(currentDay,i)]; });
+  saveState();
+  const count=history[currentDay].length;
+  document.getElementById('overlayMsg').innerHTML=
+    `<strong>${day.name} — ${day.tag}</strong><br>Você realizou este treino <strong>${count}x</strong> no total!<br><span style="font-size:12px;opacity:.6">${formatDate(isoDate)}</span>`;
+  document.getElementById('overlay').classList.add('show');
+}
+
+function closeOverlay(){
+  document.getElementById('overlay').classList.remove('show');
+  renderTabs(); renderContent();
+}
+
+function renderHistorico(){
+  let html='';
+  workouts.forEach((w,i)=>{
+    const sessions=history[i]||[];
+    const count=sessions.length;
+    html+=`<div class="hist-day-card">
+      <div class="hist-day-header" onclick="toggleHist(${i})">
+        <div>
+          <div class="hist-day-name">${w.name}</div>
+          <div class="hist-day-tag">${w.tag}</div>
+        </div>
+        <div class="hist-count-badge ${count===0?'zero':''}">${count}x realizados</div>
+      </div>
+      <div class="hist-sessions" id="hist_${i}">`;
+    if(count===0){
+      html+=`<div class="hist-empty">Nenhum treino registrado ainda</div>`;
+    } else {
+      sessions.slice().reverse().forEach((s,idx)=>{
+        const num=count-idx;
+        html+=`<div class="hist-session-row">
+          <span class="hist-session-num">#${num}ª vez</span>
+          <span class="hist-session-date">${s.date}</span>
+        </div>`;
+      });
+    }
+    html+=`</div></div>`;
+  });
+  const total=Object.values(history).reduce((a,v)=>a+(v.length||0),0);
+  if(total>0){
+    html+=`<button class="hist-clear-btn" onclick="clearHistory()">🗑 Apagar todo o histórico</button>`;
+  }
+  document.getElementById('histContent').innerHTML=html;
+}
+
+function toggleHist(i){
+  document.getElementById(`hist_${i}`).classList.toggle('open');
+}
+
+function clearHistory(){
+  if(!confirm('Apagar todo o histórico de treinos?')) return;
+  history={}; saveHistory(); renderHistorico();
+}
+
+function showPage(page){
+  document.getElementById('pageTreino').style.display=page==='treino'?'block':'none';
+  document.getElementById('pageHistorico').style.display=page==='historico'?'block':'none';
+  document.getElementById('navTreino').classList.toggle('active',page==='treino');
+  document.getElementById('navHistorico').classList.toggle('active',page==='historico');
+  if(page==='historico') renderHistorico();
+}
+
+function setDate(){
+  const now=new Date();
+  const days=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const months=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  document.getElementById('dateBadge').innerHTML=
+    `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]}<br>${now.getFullYear()}`;
+}
+
+loadData(); setDate(); renderTabs(); renderContent();
+</script>
+</body>
+</html>
